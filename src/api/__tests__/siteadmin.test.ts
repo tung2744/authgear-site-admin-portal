@@ -56,12 +56,12 @@ describe("siteadmin API functions", () => {
 
       await siteadmin.listApps({
         app_id: "my-app",
-        owner_search: "user@example.com",
+        collaborator_search: "user@example.com",
         plan: "pro",
       });
 
       expect(mockApiRequest).toHaveBeenCalledWith(
-        "/api/v1/apps?app_id=my-app&owner_search=user%40example.com&plan=pro"
+        "/api/v1/apps?app_id=my-app&collaborator_search=user%40example.com&plan=pro"
       );
     });
 
@@ -81,7 +81,7 @@ describe("siteadmin API functions", () => {
       );
     });
 
-    it("should support relevance sort with owner_search", async () => {
+    it("should support relevance sort with collaborator_search", async () => {
       mockApiRequest.mockResolvedValue({
         apps: [],
         total_count: 0,
@@ -91,12 +91,12 @@ describe("siteadmin API functions", () => {
       });
 
       await siteadmin.listApps({
-        owner_search: "alice",
+        collaborator_search: "alice",
         sort: "relevance",
       });
 
       expect(mockApiRequest).toHaveBeenCalledWith(
-        "/api/v1/apps?owner_search=alice&sort=relevance"
+        "/api/v1/apps?collaborator_search=alice&sort=relevance"
       );
     });
 

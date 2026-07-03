@@ -65,7 +65,7 @@ function getPageItems(current: number, total: number): PageItem[] {
 
 const SEARCH_BY_OPTIONS: IDropdownOption[] = [
   { key: "projectId", text: "Project ID" },
-  { key: "ownerEmail", text: "Owner" },
+  { key: "collaboratorEmail", text: "Collaborator" },
 ];
 
 const ALL_PLANS_KEY = "__all__";
@@ -114,16 +114,17 @@ const ProjectsScreen: React.VFC = function ProjectsScreen() {
       });
   }, []);
 
-  const ownerSearch = searchBy === "ownerEmail" ? searchText.trim() : undefined;
-  // When owner_search is active without an explicit sort choice, the server
-  // defaults to relevance — we omit sort/order to let that happen.
-  const sendSort = !ownerSearch || sortExplicit;
+  const collaboratorSearch =
+    searchBy === "collaboratorEmail" ? searchText.trim() : undefined;
+  // When collaborator_search is active without an explicit sort choice, the
+  // server defaults to relevance — we omit sort/order to let that happen.
+  const sendSort = !collaboratorSearch || sortExplicit;
 
   useEffect(() => {
     setLoading(true);
     setError(null);
     const params: ListAppsParams = { page: currentPage, page_size: PAGE_SIZE };
-    if (ownerSearch) params.owner_search = ownerSearch;
+    if (collaboratorSearch) params.collaborator_search = collaboratorSearch;
     if (searchText.trim() && searchBy === "projectId")
       params.app_id = searchText.trim();
     if (sendSort) {
@@ -147,7 +148,7 @@ const ProjectsScreen: React.VFC = function ProjectsScreen() {
     planFilter,
     sortKey,
     sortOrder,
-    ownerSearch,
+    collaboratorSearch,
     sendSort,
   ]);
 

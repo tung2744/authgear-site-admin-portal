@@ -23,7 +23,7 @@ export interface ListAppsParams {
   page?: number;
   page_size?: number;
   app_id?: string;
-  owner_search?: string;
+  collaborator_search?: string;
   plan?: string;
   sort?: "created_at" | "mau" | "relevance";
   order?: "asc" | "desc";
@@ -34,7 +34,8 @@ export function listApps(params?: ListAppsParams): Promise<AppsListResponse> {
   if (params?.page != null) qs.set("page", String(params.page));
   if (params?.page_size != null) qs.set("page_size", String(params.page_size));
   if (params?.app_id) qs.set("app_id", params.app_id);
-  if (params?.owner_search) qs.set("owner_search", params.owner_search);
+  if (params?.collaborator_search)
+    qs.set("collaborator_search", params.collaborator_search);
   if (params?.plan) qs.set("plan", params.plan);
   if (params?.sort) qs.set("sort", params.sort);
   if (params?.order) qs.set("order", params.order);
