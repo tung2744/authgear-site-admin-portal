@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ChoiceGroup, IChoiceGroupOption, ITag, TagPicker } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  IChoiceGroupOption,
+  ITag,
+  TagPicker,
+} from "@fluentui/react";
 import { COUNTRIES } from "../../data/countries";
 import styles from "./CountryListFieldControl.module.css";
 

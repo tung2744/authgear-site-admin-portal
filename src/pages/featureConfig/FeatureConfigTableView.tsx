@@ -79,9 +79,7 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
             return (
               <BooleanFieldControl
                 value={
-                  currentValue === undefined
-                    ? undefined
-                    : Boolean(currentValue)
+                  currentValue === undefined ? undefined : Boolean(currentValue)
                 }
                 planValue={planValue}
                 disabled={disabled}
@@ -134,7 +132,11 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
                 {errors && errors.length > 0 && (
                   <TooltipHost
                     content={errors
-                      .map((e) => e.kind + (e.details ? ` (${JSON.stringify(e.details)})` : ""))
+                      .map(
+                        (e) =>
+                          e.kind +
+                          (e.details ? ` (${JSON.stringify(e.details)})` : "")
+                      )
                       .join("; ")}
                   >
                     <Icon iconName="ErrorBadge" className={styles.errorIcon} />

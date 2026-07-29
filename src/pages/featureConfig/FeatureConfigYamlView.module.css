@@ -1,0 +1,16 @@
+.root {
+  @apply flex gap-4 w-full;
+  height: 520px;
+}
+
+.pane {
+  @apply flex flex-col flex-1 min-w-0 border border-gray-200 rounded;
+}
+
+.paneHeader {
+  @apply px-3 py-2 text-sm font-semibold border-b border-gray-200 bg-gray-50;
+}
+
+.editorContainer {
+  @apply flex-1 min-h-0;
+}
