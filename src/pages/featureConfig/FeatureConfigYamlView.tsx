@@ -57,6 +57,7 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
           <div className={styles.paneHeader}>App Config (override YAML)</div>
           <div className={styles.editorContainer}>
             <Editor
+              height="100%"
               language="yaml"
               value={yamlText}
               onChange={onEditorChange}
