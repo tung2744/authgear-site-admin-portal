@@ -1,0 +1,15 @@
+.root {
+  @apply flex flex-col gap-4;
+}
+
+.loadingRoot {
+  @apply flex items-center justify-center py-12;
+}
+
+.toolbar {
+  @apply flex items-center justify-between flex-wrap gap-2;
+}
+
+.actions {
+  @apply flex items-center gap-2;
+}
