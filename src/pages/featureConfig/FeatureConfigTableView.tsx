@@ -5,6 +5,7 @@ import { isCollection, type Document } from "yaml";
 import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
 import { getAtPointer, parseJsonPointer } from "../../utils/jsonPointer";
 import { FIELD_REGISTRY, FieldDef } from "./fieldRegistry";
+import { deleteAndPruneIn } from "./yamlDocumentEdits";
 import BooleanFieldControl from "./BooleanFieldControl";
 import NumberFieldControl from "./NumberFieldControl";
 import CountryListFieldControl from "./CountryListFieldControl";
@@ -76,7 +77,7 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
         const path = parseJsonPointer(field.jsonPointer);
         const next = doc.clone();
         if (value === undefined) {
-          next.deleteIn(path);
+          deleteAndPruneIn(next, path);
         } else {
           next.setIn(path, value);
         }

@@ -12,6 +12,7 @@ import { Document, parseDocument } from "yaml";
 import useFeatureConfigDraft from "./featureConfig/useFeatureConfigDraft";
 import FeatureConfigTableView from "./featureConfig/FeatureConfigTableView";
 import FeatureConfigYamlView from "./featureConfig/FeatureConfigYamlView";
+import { documentToYamlText } from "./featureConfig/yamlDocumentEdits";
 import styles from "./FeatureConfigContent.module.css";
 
 export interface FeatureConfigContentProps {
@@ -52,7 +53,7 @@ const FeatureConfigContent: React.VFC<FeatureConfigContentProps> =
 
     const onDocChange = useCallback(
       (nextDoc: Document) => {
-        draft.setYamlText(nextDoc.toString());
+        draft.setYamlText(documentToYamlText(nextDoc));
       },
       [draft]
     );
