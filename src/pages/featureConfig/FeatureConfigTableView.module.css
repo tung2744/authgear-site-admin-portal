@@ -1,0 +1,19 @@
+.list {
+  @apply w-full;
+}
+
+.fieldCell {
+  @apply flex items-center gap-2 text-sm font-medium;
+}
+
+.errorIcon {
+  @apply text-red-600;
+}
+
+.readOnlyValue {
+  @apply text-sm text-gray-600;
+}
+
+.rowError {
+  @apply bg-red-50;
+}
