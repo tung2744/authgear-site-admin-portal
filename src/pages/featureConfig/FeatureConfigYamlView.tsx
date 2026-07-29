@@ -1,7 +1,8 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import cn from "classnames";
+import { stringify } from "yaml";
 import type { FeatureConfig } from "../../api/types";
 import CodeBlock from "../../components/CodeBlock";
 import styles from "./FeatureConfigYamlView.module.css";
@@ -45,10 +46,12 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
       [onYamlTextChange]
     );
 
-    const referenceValue = JSON.stringify(
-      referenceMode === "plan" ? planFeatureConfig : effectiveFeatureConfig,
-      null,
-      2
+    const referenceValue = useMemo(
+      () =>
+        stringify(
+          referenceMode === "plan" ? planFeatureConfig : effectiveFeatureConfig
+        ),
+      [referenceMode, planFeatureConfig, effectiveFeatureConfig]
     );
 
     return (
@@ -80,7 +83,7 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
             {REFERENCE_INFO[referenceMode]}
           </div>
           <div className={styles.refContent}>
-            <CodeBlock value={referenceValue} language="json" />
+            <CodeBlock value={referenceValue} language="yaml" />
           </div>
         </div>
         <div className={styles.editColumn}>
