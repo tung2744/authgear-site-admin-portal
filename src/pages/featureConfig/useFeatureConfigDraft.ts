@@ -113,7 +113,7 @@ export default function useFeatureConfigDraft(
   // in-flight responses ignored so an older response can't overwrite a newer
   // one.
   useEffect(() => {
-    if (loading) return;
+    if (loading || loadError != null) return;
 
     const seq = ++previewSeq.current;
     setPreviewLoading(true);
@@ -141,7 +141,7 @@ export default function useFeatureConfigDraft(
     }, PREVIEW_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [appId, yamlText, loading]);
+  }, [appId, yamlText, loading, loadError]);
 
   const setYamlText = useCallback((text: string) => {
     setYamlTextState(text);
