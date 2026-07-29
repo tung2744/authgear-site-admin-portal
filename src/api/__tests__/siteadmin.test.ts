@@ -636,4 +636,146 @@ describe("siteadmin API functions", () => {
       expect(result).toEqual(mockResponse);
     });
   });
+
+  describe("getAppFeatureConfig", () => {
+    it("should call apiRequest with the correct path", async () => {
+      const mockResponse = {
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "",
+        effective_app_feature_config: {},
+      };
+      mockApiRequest.mockResolvedValue(mockResponse);
+
+      const result = await siteadmin.getAppFeatureConfig("app1");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app1/feature-config"
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should encode app ID in URL", async () => {
+      mockApiRequest.mockResolvedValue({
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "",
+        effective_app_feature_config: {},
+      });
+
+      await siteadmin.getAppFeatureConfig("app/1");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app%2F1/feature-config"
+      );
+    });
+  });
+
+  describe("updateAppFeatureConfig", () => {
+    it("should PUT the override YAML in the request body", async () => {
+      const mockResponse = {
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "oauth:\n  client:\n    maximum: 5\n",
+        effective_app_feature_config: {},
+      };
+      mockApiRequest.mockResolvedValue(mockResponse);
+
+      const result = await siteadmin.updateAppFeatureConfig(
+        "app1",
+        "oauth:\n  client:\n    maximum: 5\n"
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app1/feature-config",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            app_feature_config_yaml: "oauth:\n  client:\n    maximum: 5\n",
+          }),
+        }
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should encode app ID in URL", async () => {
+      mockApiRequest.mockResolvedValue({
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "",
+        effective_app_feature_config: {},
+      });
+
+      await siteadmin.updateAppFeatureConfig("app/1", "");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app%2F1/feature-config",
+        expect.objectContaining({ method: "PUT" })
+      );
+    });
+
+    it("should support clearing the override with an empty string", async () => {
+      mockApiRequest.mockResolvedValue({
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "",
+        effective_app_feature_config: {},
+      });
+
+      await siteadmin.updateAppFeatureConfig("app1", "");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app1/feature-config",
+        expect.objectContaining({
+          body: JSON.stringify({ app_feature_config_yaml: "" }),
+        })
+      );
+    });
+  });
+
+  describe("previewAppFeatureConfig", () => {
+    it("should POST to the preview endpoint with the candidate YAML", async () => {
+      const mockResponse = {
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "collaborator:\n  soft_maximum: 1\n",
+        effective_app_feature_config: {},
+      };
+      mockApiRequest.mockResolvedValue(mockResponse);
+
+      const result = await siteadmin.previewAppFeatureConfig(
+        "app1",
+        "collaborator:\n  soft_maximum: 1\n"
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app1/feature-config/preview",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            app_feature_config_yaml: "collaborator:\n  soft_maximum: 1\n",
+          }),
+        }
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should encode app ID in URL", async () => {
+      mockApiRequest.mockResolvedValue({
+        plan_name: "pro",
+        effective_plan_feature_config: {},
+        app_feature_config_yaml: "",
+        effective_app_feature_config: {},
+      });
+
+      await siteadmin.previewAppFeatureConfig("app/1", "");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/api/v1/apps/app%2F1/feature-config/preview",
+        expect.objectContaining({ method: "POST" })
+      );
+    });
+  });
 });

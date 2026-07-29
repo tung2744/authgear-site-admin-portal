@@ -8,6 +8,7 @@ import type {
   App,
   AppDetail,
   AppsListResponse,
+  AppFeatureConfigResponse,
   Collaborator,
   CollaboratorsListResponse,
   MessagingUsage,
@@ -155,4 +156,42 @@ export function changeAppPlan(appId: string, planName: string): Promise<App> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ plan_name: planName }),
   });
+}
+
+// ─── Feature Config ─────────────────────────────────────────────────────────────
+
+export function getAppFeatureConfig(
+  appId: string
+): Promise<AppFeatureConfigResponse> {
+  return apiRequest(
+    `/api/v1/apps/${encodeURIComponent(appId)}/feature-config`
+  );
+}
+
+export function updateAppFeatureConfig(
+  appId: string,
+  appFeatureConfigYaml: string
+): Promise<AppFeatureConfigResponse> {
+  return apiRequest(
+    `/api/v1/apps/${encodeURIComponent(appId)}/feature-config`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_feature_config_yaml: appFeatureConfigYaml }),
+    }
+  );
+}
+
+export function previewAppFeatureConfig(
+  appId: string,
+  appFeatureConfigYaml: string
+): Promise<AppFeatureConfigResponse> {
+  return apiRequest(
+    `/api/v1/apps/${encodeURIComponent(appId)}/feature-config/preview`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_feature_config_yaml: appFeatureConfigYaml }),
+    }
+  );
 }
