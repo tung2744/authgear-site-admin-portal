@@ -11,7 +11,7 @@ import {
   TooltipHost,
 } from "@fluentui/react";
 import cn from "classnames";
-import type { Document } from "yaml";
+import { isCollection, type Document } from "yaml";
 import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
 import { getAtPointer, parseJsonPointer } from "../../utils/jsonPointer";
 import { FIELD_REGISTRY, FieldDef } from "./fieldRegistry";
@@ -35,6 +35,15 @@ export interface FeatureConfigTableViewProps {
   /** Validation causes from the last PUT/preview, keyed by field jsonPointer. */
   fieldErrors: Map<string, ValidationErrorCause[]>;
   disabled?: boolean;
+}
+
+/**
+ * `Document#getIn` unwraps scalars but returns collections (arrays/maps) as
+ * their raw YAML nodes — convert those to plain JS so controls can treat
+ * `getIn` results the same as `effective_*_feature_config` JSON values.
+ */
+function unwrapNode(v: unknown): unknown {
+  return isCollection(v) ? v.toJSON() : v;
 }
 
 function formatDisplayValue(v: unknown): string {
@@ -71,7 +80,7 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
     const renderAppConfigCell = useCallback(
       (field: FieldDef) => {
         const path = parseJsonPointer(field.jsonPointer);
-        const currentValue = doc.getIn(path);
+        const currentValue = unwrapNode(doc.getIn(path));
         const planValue = getAtPointer(planFeatureConfig, field.jsonPointer);
 
         switch (field.control) {
