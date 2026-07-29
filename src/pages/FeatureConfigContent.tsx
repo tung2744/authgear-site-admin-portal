@@ -3,12 +3,11 @@ import {
   DefaultButton,
   MessageBar,
   MessageBarType,
-  Pivot,
-  PivotItem,
   PrimaryButton,
   Spinner,
   SpinnerSize,
 } from "@fluentui/react";
+import cn from "classnames";
 import { Document, parseDocument } from "yaml";
 import useFeatureConfigDraft from "./featureConfig/useFeatureConfigDraft";
 import FeatureConfigTableView from "./featureConfig/FeatureConfigTableView";
@@ -44,8 +43,7 @@ const FeatureConfigContent: React.VFC<FeatureConfigContentProps> =
     // Table -> YAML is always safe; YAML -> table requires parseable YAML
     // since the table view reads the document directly.
     const onSelectView = useCallback(
-      (item?: PivotItem) => {
-        const mode = (item?.props.itemKey as ViewMode | undefined) ?? "table";
+      (mode: ViewMode) => {
         if (mode === "table" && parseError != null) return;
         setView(mode);
       },
@@ -77,22 +75,29 @@ const FeatureConfigContent: React.VFC<FeatureConfigContentProps> =
 
     return (
       <div className={styles.root}>
-        <div className={styles.toolbar}>
-          <Pivot selectedKey={view} onLinkClick={onSelectView}>
-            <PivotItem headerText="Table" itemKey="table" />
-            <PivotItem headerText="YAML" itemKey="yaml" />
-          </Pivot>
-          <div className={styles.actions}>
-            <DefaultButton
-              text="Discard"
-              onClick={draft.discard}
-              disabled={!draft.dirty || draft.saving}
-            />
-            <PrimaryButton
-              text={draft.saving ? "Saving…" : "Save"}
-              onClick={draft.save}
-              disabled={!draft.dirty || draft.saving || parseError != null}
-            />
+        <div className={styles.viewToggleRow}>
+          <div className={styles.modeToggle}>
+            <button
+              type="button"
+              className={cn(
+                styles.modeBtn,
+                styles.modeBtnLeft,
+                view === "table" && styles.modeBtnActive
+              )}
+              onClick={() => onSelectView("table")}
+            >
+              Table
+            </button>
+            <button
+              type="button"
+              className={cn(
+                styles.modeBtn,
+                view === "yaml" && styles.modeBtnActive
+              )}
+              onClick={() => onSelectView("yaml")}
+            >
+              YAML
+            </button>
           </div>
         </div>
 
@@ -134,6 +139,26 @@ const FeatureConfigContent: React.VFC<FeatureConfigContentProps> =
             disabled={draft.saving}
           />
         )}
+
+        <div className={styles.actionBar}>
+          <DefaultButton
+            text="Discard"
+            onClick={draft.discard}
+            disabled={!draft.dirty || draft.saving}
+          />
+          <PrimaryButton
+            text={draft.saving ? "Saving…" : "Save"}
+            onClick={draft.save}
+            disabled={!draft.dirty || draft.saving || parseError != null}
+            styles={{
+              root: { backgroundColor: "#176df3", borderColor: "#176df3" },
+              rootHovered: {
+                backgroundColor: "#1562db",
+                borderColor: "#1562db",
+              },
+            }}
+          />
+        </div>
       </div>
     );
   };

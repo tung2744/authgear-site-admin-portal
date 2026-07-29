@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { editor } from "monaco-editor";
-import { Pivot, PivotItem } from "@fluentui/react";
+import cn from "classnames";
 import type { FeatureConfig } from "../../api/types";
 import CodeBlock from "../../components/CodeBlock";
 import styles from "./FeatureConfigYamlView.module.css";
@@ -22,6 +22,11 @@ export interface FeatureConfigYamlViewProps {
 
 type ReferenceMode = "plan" | "effective";
 
+const REFERENCE_INFO: Record<ReferenceMode, string> = {
+  plan: "Read-only · What this app would get with no app-specific override",
+  effective: "Read-only · Computed result — plan merged with app config",
+};
+
 const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
   function FeatureConfigYamlView({
     yamlText,
@@ -40,11 +45,6 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
       [onYamlTextChange]
     );
 
-    const onReferenceLinkClick = useCallback((item?: PivotItem) => {
-      const key = item?.props.itemKey as ReferenceMode | undefined;
-      if (key) setReferenceMode(key);
-    }, []);
-
     const referenceValue = JSON.stringify(
       referenceMode === "plan" ? planFeatureConfig : effectiveFeatureConfig,
       null,
@@ -52,10 +52,40 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
     );
 
     return (
-      <div className={styles.root}>
-        <div className={styles.pane}>
-          <div className={styles.paneHeader}>App Config (override YAML)</div>
-          <div className={styles.editorContainer}>
+      <div className={styles.twoCols}>
+        <div className={styles.refPanel}>
+          <div className={styles.refTabs}>
+            <button
+              type="button"
+              className={cn(
+                styles.refTab,
+                referenceMode === "plan" && styles.refTabActive
+              )}
+              onClick={() => setReferenceMode("plan")}
+            >
+              📋 Plan Config
+            </button>
+            <button
+              type="button"
+              className={cn(
+                styles.refTab,
+                referenceMode === "effective" && styles.refTabActive
+              )}
+              onClick={() => setReferenceMode("effective")}
+            >
+              ⚡ Effective Config
+            </button>
+          </div>
+          <div className={styles.refInfoBar}>
+            {REFERENCE_INFO[referenceMode]}
+          </div>
+          <div className={styles.refContent}>
+            <CodeBlock value={referenceValue} language="json" />
+          </div>
+        </div>
+        <div className={styles.editColumn}>
+          <div className={styles.editHeader}>App Config (override YAML)</div>
+          <div className={styles.editPanel}>
             <Editor
               height="100%"
               language="yaml"
@@ -63,21 +93,6 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
               onChange={onEditorChange}
               options={{ ...YAML_EDITOR_OPTIONS, readOnly: disabled }}
             />
-          </div>
-        </div>
-        <div className={styles.pane}>
-          <div className={styles.paneHeader}>
-            <Pivot
-              selectedKey={referenceMode}
-              onLinkClick={onReferenceLinkClick}
-              linkSize="normal"
-            >
-              <PivotItem headerText="Plan Config" itemKey="plan" />
-              <PivotItem headerText="Effective Config" itemKey="effective" />
-            </Pivot>
-          </div>
-          <div className={styles.editorContainer}>
-            <CodeBlock value={referenceValue} language="json" />
           </div>
         </div>
       </div>

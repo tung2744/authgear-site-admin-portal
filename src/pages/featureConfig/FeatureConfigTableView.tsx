@@ -1,15 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import {
-  ColumnActionsMode,
-  DetailsList,
-  DetailsListLayoutMode,
-  DetailsRow,
-  Icon,
-  IColumn,
-  IDetailsRowProps,
-  SelectionMode,
-  TooltipHost,
-} from "@fluentui/react";
+import { Icon, TooltipHost } from "@fluentui/react";
 import cn from "classnames";
 import { isCollection, type Document } from "yaml";
 import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
@@ -20,12 +10,6 @@ import NumberFieldControl from "./NumberFieldControl";
 import CountryListFieldControl from "./CountryListFieldControl";
 import styles from "./FeatureConfigTableView.module.css";
 
-const COLUMN_WIDTHS = {
-  field: 300,
-  planConfig: 200,
-  appConfig: 340,
-} as const;
-
 export interface FeatureConfigTableViewProps {
   /** The parsed app-override YAML document — the single source of truth. */
   doc: Document;
@@ -35,6 +19,30 @@ export interface FeatureConfigTableViewProps {
   /** Validation causes from the last PUT/preview, keyed by field jsonPointer. */
   fieldErrors: Map<string, ValidationErrorCause[]>;
   disabled?: boolean;
+}
+
+interface FieldSectionGroup {
+  section: string;
+  fields: FieldDef[];
+}
+
+const UNSECTIONED = "Other";
+
+/** Groups the registry by `section`, preserving first-seen order — pure display grouping. */
+function groupBySection(fields: FieldDef[]): FieldSectionGroup[] {
+  const groups: FieldSectionGroup[] = [];
+  const bySection = new Map<string, FieldSectionGroup>();
+  for (const field of fields) {
+    const section = field.section ?? UNSECTIONED;
+    let group = bySection.get(section);
+    if (!group) {
+      group = { section, fields: [] };
+      bySection.set(section, group);
+      groups.push(group);
+    }
+    group.fields.push(field);
+  }
+  return groups;
 }
 
 /**
@@ -125,87 +133,74 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
       [doc, planFeatureConfig, disabled, commit]
     );
 
-    const columns: IColumn[] = useMemo(
-      () => [
-        {
-          key: "field",
-          name: "Field",
-          minWidth: COLUMN_WIDTHS.field,
-          maxWidth: COLUMN_WIDTHS.field,
-          columnActionsMode: ColumnActionsMode.disabled,
-          onRender: (field: FieldDef) => {
-            const errors = fieldErrors.get(field.jsonPointer);
-            return (
-              <div className={styles.fieldCell}>
-                <span>{field.label}</span>
-                {errors && errors.length > 0 && (
-                  <TooltipHost
-                    content={errors
-                      .map(
-                        (e) =>
-                          e.kind +
-                          (e.details ? ` (${JSON.stringify(e.details)})` : "")
-                      )
-                      .join("; ")}
-                  >
-                    <Icon iconName="ErrorBadge" className={styles.errorIcon} />
-                  </TooltipHost>
-                )}
-              </div>
-            );
-          },
-        },
-        {
-          key: "planConfig",
-          name: "Plan Config",
-          minWidth: COLUMN_WIDTHS.planConfig,
-          maxWidth: COLUMN_WIDTHS.planConfig,
-          columnActionsMode: ColumnActionsMode.disabled,
-          onRender: (field: FieldDef) => (
-            <span className={styles.readOnlyValue}>
-              {formatDisplayValue(
-                getAtPointer(planFeatureConfig, field.jsonPointer)
-              )}
-            </span>
-          ),
-        },
-        {
-          key: "appConfig",
-          name: "App Config",
-          minWidth: COLUMN_WIDTHS.appConfig,
-          columnActionsMode: ColumnActionsMode.disabled,
-          onRender: renderAppConfigCell,
-        },
-      ],
-      [fieldErrors, planFeatureConfig, renderAppConfigCell]
-    );
-
-    const onRenderRow = useCallback(
-      (props?: IDetailsRowProps) => {
-        if (props == null) return null;
-        const field = props.item as FieldDef;
-        const hasError = fieldErrors.has(field.jsonPointer);
-        return (
-          <DetailsRow
-            {...props}
-            className={cn(props.className, hasError && styles.rowError)}
-          />
-        );
-      },
-      [fieldErrors]
-    );
+    const groups = useMemo(() => groupBySection(FIELD_REGISTRY), []);
 
     return (
-      <DetailsList
-        className={styles.list}
-        items={FIELD_REGISTRY}
-        columns={columns}
-        layoutMode={DetailsListLayoutMode.fixedColumns}
-        selectionMode={SelectionMode.none}
-        onShouldVirtualize={() => false}
-        onRenderRow={onRenderRow}
-        getKey={(item: FieldDef) => item.jsonPointer}
-      />
+      <table className={styles.cmpTable}>
+        <thead>
+          <tr>
+            <th className={styles.tableColSetting}>Setting</th>
+            <th className={styles.tableColPlan}>📋 Plan Config</th>
+            <th>✏️ App Config</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((group) => (
+            <React.Fragment key={group.section}>
+              <tr>
+                <td colSpan={3} className={styles.sectionHeaderRow}>
+                  {group.section}
+                </td>
+              </tr>
+              {group.fields.map((field) => {
+                const errors = fieldErrors.get(field.jsonPointer);
+                const hasError = errors != null && errors.length > 0;
+                return (
+                  <tr
+                    key={field.jsonPointer}
+                    className={cn(hasError && styles.rowError)}
+                  >
+                    <td className={cn(styles.tableCell, styles.tableCellLabel)}>
+                      <div className={styles.fieldLabelRow}>
+                        <span>{field.label}</span>
+                        {hasError && (
+                          <TooltipHost
+                            content={errors
+                              .map(
+                                (e) =>
+                                  e.kind +
+                                  (e.details
+                                    ? ` (${JSON.stringify(e.details)})`
+                                    : "")
+                              )
+                              .join("; ")}
+                          >
+                            <Icon
+                              iconName="ErrorBadge"
+                              className={styles.errorIcon}
+                            />
+                          </TooltipHost>
+                        )}
+                      </div>
+                      <div className={styles.jsonPath}>{field.jsonPointer}</div>
+                    </td>
+                    <td className={styles.tableCell}>
+                      <span className={styles.planValue}>
+                        {formatDisplayValue(
+                          getAtPointer(planFeatureConfig, field.jsonPointer)
+                        )}
+                      </span>
+                    </td>
+                    <td className={styles.tableCell}>
+                      {renderAppConfigCell(field)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
     );
   };
 
