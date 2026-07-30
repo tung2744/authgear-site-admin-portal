@@ -165,8 +165,14 @@ const ProjectDetailsPage: React.VFC = function ProjectDetailsPage() {
       const key = item?.props.itemKey as TabKey | undefined;
       if (key && projectId) {
         const hash = TAB_KEY_TO_HASH[key];
+        // selectedTab is derived from location.hash by the effect above, not
+        // set here directly -- if a tab holds an unsaved-changes blocker
+        // (e.g. Feature Config), that blocker only gets a chance to
+        // intercept because navigate() hasn't actually committed yet when
+        // this fires. Setting selectedTab eagerly here would switch tabs
+        // (unmounting the blocking component) regardless of whether the
+        // navigation was blocked.
         navigate(`/project/${projectId}#${hash}`, { replace: true });
-        setSelectedTab(key);
       }
     },
     [navigate, projectId]
