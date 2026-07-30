@@ -16,6 +16,7 @@ const YAML_EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
 export interface FeatureConfigYamlViewProps {
   yamlText: string;
   onYamlTextChange: (text: string) => void;
+  planName: string | null;
   planFeatureConfig: FeatureConfig;
   effectiveFeatureConfig: FeatureConfig;
   disabled?: boolean;
@@ -23,15 +24,19 @@ export interface FeatureConfigYamlViewProps {
 
 type ReferenceMode = "plan" | "effective";
 
-const REFERENCE_INFO: Record<ReferenceMode, string> = {
-  plan: "Read-only · What this app would get with no app-specific override",
-  effective: "Read-only · Computed result — plan merged with app config",
-};
+function referenceInfo(mode: ReferenceMode, planName: string | null): string {
+  const plan = planName ?? "—";
+  if (mode === "plan") {
+    return `Read-only · Plan: ${plan} — what this app would get with no app-specific override`;
+  }
+  return `Read-only · Plan: ${plan} — computed result, plan merged with app config`;
+}
 
 const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
   function FeatureConfigYamlView({
     yamlText,
     onYamlTextChange,
+    planName,
     planFeatureConfig,
     effectiveFeatureConfig,
     disabled,
@@ -80,7 +85,7 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
             </button>
           </div>
           <div className={styles.refInfoBar}>
-            {REFERENCE_INFO[referenceMode]}
+            {referenceInfo(referenceMode, planName)}
           </div>
           <div className={styles.refContent}>
             <CodeBlock value={referenceValue} language="yaml" />
