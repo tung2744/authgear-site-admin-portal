@@ -27,9 +27,9 @@ type ReferenceMode = "plan" | "effective";
 function referenceInfo(mode: ReferenceMode, planName: string | null): string {
   const plan = planName ?? "—";
   if (mode === "plan") {
-    return `Read-only · Plan: ${plan} — what this app would get with no app-specific override`;
+    return `Read-only · Plan: ${plan} · No app-specific override`;
   }
-  return `Read-only · Plan: ${plan} — computed result, plan merged with app config`;
+  return `Read-only · Plan: ${plan} · Merged with app config`;
 }
 
 const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =

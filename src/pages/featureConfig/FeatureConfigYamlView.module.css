@@ -47,7 +47,13 @@
 
 .refInfoBar {
   @apply px-3 py-1.5 flex-shrink-0;
+  /* Fixed regardless of content: the plan/effective descriptions differ in
+     length (and the plan name itself is variable-length), so without this
+     the bar's height visibly jumps when switching tabs depending on whether
+     the text wraps to one or two lines. */
+  min-height: 42px;
   font-size: 11px;
+  line-height: 1.5;
   color: #797775;
   background: #faf9f8;
   border-bottom: 1px solid #e1dfdd;
