@@ -9,7 +9,7 @@ import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
 import { FIELD_REGISTRY } from "./fieldRegistry";
 import { formatValidationCauses, mapCausesToFields } from "./errorMapping";
 
-const PREVIEW_DEBOUNCE_MS = 400;
+const PREVIEW_DEBOUNCE_MS = 900;
 
 function describeError(e: unknown, fallback: string): string {
   return e instanceof Error ? e.message : fallback;
@@ -76,6 +76,13 @@ export interface FeatureConfigDraft {
   setYamlText: (text: string) => void;
   save: () => void;
   discard: () => void;
+  /**
+   * Runs the preview immediately, cancelling any pending debounced call.
+   * Meant for a natural pause point such as the YAML editor losing focus,
+   * so validation feedback doesn't interrupt active typing but still
+   * appears promptly once the user steps away to look at it.
+   */
+  triggerPreviewNow: () => void;
 }
 
 export default function useFeatureConfigDraft(
@@ -107,6 +114,7 @@ export default function useFeatureConfigDraft(
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const previewSeq = useRef(0);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -127,16 +135,13 @@ export default function useFeatureConfigDraft(
   }, [appId]);
 
   // Live "Effective" feedback while editing, always computed server-side via
-  // the preview endpoint — never merged client-side. Debounced, with stale
-  // in-flight responses ignored so an older response can't overwrite a newer
-  // one.
-  useEffect(() => {
-    if (loading || loadError != null) return;
-
-    const seq = ++previewSeq.current;
-    setPreviewLoading(true);
-    const timer = setTimeout(() => {
-      previewAppFeatureConfig(appId, yamlText)
+  // the preview endpoint — never merged client-side. Stale in-flight
+  // responses are ignored so an older response can't overwrite a newer one.
+  const runPreview = useCallback(
+    (text: string) => {
+      const seq = ++previewSeq.current;
+      setPreviewLoading(true);
+      previewAppFeatureConfig(appId, text)
         .then((res) => {
           if (previewSeq.current !== seq) return;
           setEffective(res.effective_app_feature_config);
@@ -147,7 +152,11 @@ export default function useFeatureConfigDraft(
           if (previewSeq.current !== seq) return;
           const causes = extractCauses(e);
           setErrorMessage(
-            describeValidationError(e, causes, "Failed to preview feature config.")
+            describeValidationError(
+              e,
+              causes,
+              "Failed to preview feature config."
+            )
           );
           setValidationCauses(
             causes ? mapCausesToFields(causes, FIELD_REGISTRY) : null
@@ -156,10 +165,36 @@ export default function useFeatureConfigDraft(
         .finally(() => {
           if (previewSeq.current === seq) setPreviewLoading(false);
         });
+    },
+    [appId]
+  );
+
+  // Debounced while typing, so an intermediate (often invalid) document
+  // doesn't flash a validation error mid-edit -- triggerPreviewNow below
+  // provides an immediate path for natural pause points instead.
+  useEffect(() => {
+    if (loading || loadError != null) return;
+
+    previewTimer.current = setTimeout(() => {
+      previewTimer.current = null;
+      runPreview(yamlText);
     }, PREVIEW_DEBOUNCE_MS);
 
-    return () => clearTimeout(timer);
-  }, [appId, yamlText, loading, loadError]);
+    return () => {
+      if (previewTimer.current != null) {
+        clearTimeout(previewTimer.current);
+        previewTimer.current = null;
+      }
+    };
+  }, [yamlText, loading, loadError, runPreview]);
+
+  const triggerPreviewNow = useCallback(() => {
+    if (previewTimer.current != null) {
+      clearTimeout(previewTimer.current);
+      previewTimer.current = null;
+    }
+    runPreview(yamlText);
+  }, [runPreview, yamlText]);
 
   const setYamlText = useCallback((text: string) => {
     setYamlTextState(text);
@@ -218,5 +253,6 @@ export default function useFeatureConfigDraft(
     setYamlText,
     save,
     discard,
+    triggerPreviewNow,
   };
 }

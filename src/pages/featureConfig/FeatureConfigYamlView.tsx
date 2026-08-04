@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import Editor from "@monaco-editor/react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import Editor, { type OnMount } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import cn from "classnames";
 import { stringify } from "yaml";
@@ -20,6 +20,12 @@ export interface FeatureConfigYamlViewProps {
   planFeatureConfig: FeatureConfig;
   effectiveFeatureConfig: FeatureConfig;
   disabled?: boolean;
+  /**
+   * Called when the editor loses focus -- a natural pause point to show
+   * validation feedback immediately, without waiting for (or interrupting)
+   * the debounce that runs while the user is still typing.
+   */
+  onEditorBlur?: () => void;
 }
 
 type ReferenceMode = "plan" | "effective";
@@ -40,9 +46,22 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
     planFeatureConfig,
     effectiveFeatureConfig,
     disabled,
+    onEditorBlur,
   }) {
     const [referenceMode, setReferenceMode] =
       useState<ReferenceMode>("effective");
+
+    // Read fresh in the Monaco blur listener below, which is only attached
+    // once on mount -- a plain closure over the prop would go stale if
+    // onEditorBlur's identity ever changes across renders.
+    const onEditorBlurRef = useRef(onEditorBlur);
+    onEditorBlurRef.current = onEditorBlur;
+
+    const onEditorMount: OnMount = useCallback((editorInstance) => {
+      editorInstance.onDidBlurEditorText(() => {
+        onEditorBlurRef.current?.();
+      });
+    }, []);
 
     const onEditorChange = useCallback(
       (value: string | undefined) => {
@@ -99,6 +118,7 @@ const FeatureConfigYamlView: React.VFC<FeatureConfigYamlViewProps> =
               language="yaml"
               value={yamlText}
               onChange={onEditorChange}
+              onMount={onEditorMount}
               options={{ ...YAML_EDITOR_OPTIONS, readOnly: disabled }}
             />
           </div>

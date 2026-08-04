@@ -156,6 +156,7 @@ const FeatureConfigContent: React.VFC<FeatureConfigContentProps> =
             <FeatureConfigYamlView
               yamlText={draft.yamlText}
               onYamlTextChange={draft.setYamlText}
+              onEditorBlur={draft.triggerPreviewNow}
               planName={draft.planName}
               planFeatureConfig={draft.effectivePlan ?? {}}
               effectiveFeatureConfig={draft.effective ?? {}}
