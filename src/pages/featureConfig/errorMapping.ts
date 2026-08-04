@@ -40,3 +40,25 @@ export function mapCausesToFields(
 
   return result;
 }
+
+/**
+ * Renders a single validation cause as a plain-English message, e.g.
+ * "Invalid input at /authentication/lockout/password/enabled: type".
+ * Mirrors the portal's `errors.validation.unknown` fallback format
+ * (portal/src/locale-data/en.json), since this app has no i18n layer to
+ * source a per-kind dictionary from.
+ */
+function formatValidationCause(cause: ValidationErrorCause): string {
+  const location = cause.location === "" ? "the document" : cause.location;
+  return `Invalid input at ${location}: ${cause.kind}`;
+}
+
+/**
+ * Renders every cause for the generic error banner, so a multi-field
+ * validation failure surfaces all of them at once instead of only the
+ * first (or a generic "invalid feature config" with no specifics) --
+ * mirrors how the portal's ErrorRenderer joins multiple parsed errors.
+ */
+export function formatValidationCauses(causes: ValidationErrorCause[]): string {
+  return causes.map(formatValidationCause).join("; ");
+}

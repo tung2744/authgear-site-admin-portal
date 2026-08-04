@@ -7,7 +7,7 @@ import {
 import { SiteAdminAPIError } from "../../api/client";
 import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
 import { FIELD_REGISTRY } from "./fieldRegistry";
-import { mapCausesToFields } from "./errorMapping";
+import { formatValidationCauses, mapCausesToFields } from "./errorMapping";
 
 const PREVIEW_DEBOUNCE_MS = 400;
 
@@ -29,6 +29,24 @@ function extractCauses(e: unknown): ValidationErrorCause[] | null {
     }
   }
   return null;
+}
+
+/**
+ * Prefers a per-cause message (e.g. "Invalid input at /a/b: type") over the
+ * server's generic top-level message (e.g. "invalid feature config"), which
+ * carries no specifics. Falls back to describeError for errors with no
+ * causes at all -- network failures, and the multi-document-YAML rejection,
+ * which is ValidationFailed but deliberately carries no causes since the
+ * failure isn't about any one field.
+ */
+function describeValidationError(
+  e: unknown,
+  causes: ValidationErrorCause[] | null,
+  fallback: string
+): string {
+  return causes && causes.length > 0
+    ? formatValidationCauses(causes)
+    : describeError(e, fallback);
 }
 
 export interface FeatureConfigDraft {
@@ -127,10 +145,10 @@ export default function useFeatureConfigDraft(
         })
         .catch((e: unknown) => {
           if (previewSeq.current !== seq) return;
-          setErrorMessage(
-            describeError(e, "Failed to preview feature config.")
-          );
           const causes = extractCauses(e);
+          setErrorMessage(
+            describeValidationError(e, causes, "Failed to preview feature config.")
+          );
           setValidationCauses(
             causes ? mapCausesToFields(causes, FIELD_REGISTRY) : null
           );
@@ -164,8 +182,10 @@ export default function useFeatureConfigDraft(
         setSaveSuccess(true);
       })
       .catch((e: unknown) => {
-        setErrorMessage(describeError(e, "Failed to save feature config."));
         const causes = extractCauses(e);
+        setErrorMessage(
+          describeValidationError(e, causes, "Failed to save feature config.")
+        );
         setValidationCauses(
           causes ? mapCausesToFields(causes, FIELD_REGISTRY) : null
         );
