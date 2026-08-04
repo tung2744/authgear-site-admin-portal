@@ -1,8 +1,23 @@
 /**
- * ISO 3166-1 alpha-2 country codes and English short names, used by the
- * feature config "Phone input country allowlist" control
- * (`/ui/phone_input/allowlist`). Kept as a small local dataset since this
- * project has no i18n layer to source country names from.
+ * Alpha-2 country codes and English short names, used by the feature
+ * config "Phone input country allowlist" control (`/ui/phone_input/allowlist`).
+ * Kept as a small local dataset since this project has no i18n layer to
+ * source country names from.
+ *
+ * The set of CODES here is not "every ISO 3166-1 code" -- it must exactly
+ * match the authgear-server backend's ISO31661Alpha2 JSON schema enum
+ * (pkg/util/phone/country.go's JSONSchemaString, built from
+ * pkg/util/territoryutil/alpha2.go's Alpha2 list, which is
+ * phonenumbers.GetSupportedRegions() with "AC"/"TA" excluded -- a
+ * phone-numbering-plan-based subset, not the full standard). Submitting an
+ * allowlist entry outside that set fails backend schema validation even
+ * though this picker let you select it. authgear-server's own portal
+ * mirrors the same list exactly (portal/src/data/country.json) -- this file
+ * should too. If you're regenerating or extending this list, diff its codes
+ * against pkg/util/territoryutil/alpha2.go in the authgear-server repo, not
+ * against a general ISO 3166-1 reference (which wrongly includes uninhabited
+ * territories like Antarctica/AQ that have no phone numbering plan, and is
+ * missing at least one code the backend does accept, Kosovo/XK).
  */
 export interface Country {
   code: string;
@@ -18,7 +33,6 @@ export const COUNTRIES: Country[] = [
   { code: "AL", name: "Albania" },
   { code: "AM", name: "Armenia" },
   { code: "AO", name: "Angola" },
-  { code: "AQ", name: "Antarctica" },
   { code: "AR", name: "Argentina" },
   { code: "AS", name: "American Samoa" },
   { code: "AT", name: "Austria" },
@@ -43,7 +57,6 @@ export const COUNTRIES: Country[] = [
   { code: "BR", name: "Brazil" },
   { code: "BS", name: "Bahamas" },
   { code: "BT", name: "Bhutan" },
-  { code: "BV", name: "Bouvet Island" },
   { code: "BW", name: "Botswana" },
   { code: "BY", name: "Belarus" },
   { code: "BZ", name: "Belize" },
@@ -99,13 +112,11 @@ export const COUNTRIES: Country[] = [
   { code: "GP", name: "Guadeloupe" },
   { code: "GQ", name: "Equatorial Guinea" },
   { code: "GR", name: "Greece" },
-  { code: "GS", name: "South Georgia and the South Sandwich Islands" },
   { code: "GT", name: "Guatemala" },
   { code: "GU", name: "Guam" },
   { code: "GW", name: "Guinea-Bissau" },
   { code: "GY", name: "Guyana" },
   { code: "HK", name: "Hong Kong" },
-  { code: "HM", name: "Heard Island and McDonald Islands" },
   { code: "HN", name: "Honduras" },
   { code: "HR", name: "Croatia" },
   { code: "HT", name: "Haiti" },
@@ -190,7 +201,6 @@ export const COUNTRIES: Country[] = [
   { code: "PK", name: "Pakistan" },
   { code: "PL", name: "Poland" },
   { code: "PM", name: "Saint Pierre and Miquelon" },
-  { code: "PN", name: "Pitcairn" },
   { code: "PR", name: "Puerto Rico" },
   { code: "PS", name: "Palestine" },
   { code: "PT", name: "Portugal" },
@@ -225,7 +235,6 @@ export const COUNTRIES: Country[] = [
   { code: "SZ", name: "Eswatini" },
   { code: "TC", name: "Turks and Caicos Islands" },
   { code: "TD", name: "Chad" },
-  { code: "TF", name: "French Southern Territories" },
   { code: "TG", name: "Togo" },
   { code: "TH", name: "Thailand" },
   { code: "TJ", name: "Tajikistan" },
@@ -241,7 +250,6 @@ export const COUNTRIES: Country[] = [
   { code: "TZ", name: "Tanzania" },
   { code: "UA", name: "Ukraine" },
   { code: "UG", name: "Uganda" },
-  { code: "UM", name: "United States Minor Outlying Islands" },
   { code: "US", name: "United States of America" },
   { code: "UY", name: "Uruguay" },
   { code: "UZ", name: "Uzbekistan" },
@@ -254,6 +262,7 @@ export const COUNTRIES: Country[] = [
   { code: "VU", name: "Vanuatu" },
   { code: "WF", name: "Wallis and Futuna" },
   { code: "WS", name: "Samoa" },
+  { code: "XK", name: "Kosovo" },
   { code: "YE", name: "Yemen" },
   { code: "YT", name: "Mayotte" },
   { code: "ZA", name: "South Africa" },
