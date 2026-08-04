@@ -1,5 +1,5 @@
 ---
-name: update-vulnerable-deps
+name: update-deps
 description: Update vulnerable npm dependencies safely. Only applies non-breaking changes. Prefers lock-file-only fixes via `npm audit fix`. Generates a summary of what was updated, what was skipped, and why. Use when asked to fix security vulnerabilities, run dependabot-style updates, or update vulnerable packages.
 ---
 
