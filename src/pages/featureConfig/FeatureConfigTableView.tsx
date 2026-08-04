@@ -6,6 +6,7 @@ import type { FeatureConfig, ValidationErrorCause } from "../../api/types";
 import { getAtPointer, parseJsonPointer } from "../../utils/jsonPointer";
 import { FIELD_REGISTRY, FieldDef } from "./fieldRegistry";
 import { deleteAndPruneIn } from "./yamlDocumentEdits";
+import { formatDisplayValue } from "./formatDisplayValue";
 import BooleanFieldControl from "./BooleanFieldControl";
 import NumberFieldControl from "./NumberFieldControl";
 import CountryListFieldControl from "./CountryListFieldControl";
@@ -53,15 +54,6 @@ function groupBySection(fields: FieldDef[]): FieldSectionGroup[] {
  */
 function unwrapNode(v: unknown): unknown {
   return isCollection(v) ? v.toJSON() : v;
-}
-
-function formatDisplayValue(v: unknown): string {
-  if (v === undefined || v === null) return "—";
-  if (Array.isArray(v)) {
-    return v.length === 0 ? "All countries" : v.join(", ");
-  }
-  if (typeof v === "boolean") return v ? "Enabled" : "Disabled";
-  return String(v);
 }
 
 const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
@@ -188,6 +180,7 @@ const FeatureConfigTableView: React.VFC<FeatureConfigTableViewProps> =
                     <td className={styles.tableCell}>
                       <span className={styles.planValue}>
                         {formatDisplayValue(
+                          field.control,
                           getAtPointer(planFeatureConfig, field.jsonPointer)
                         )}
                       </span>
