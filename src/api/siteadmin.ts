@@ -163,9 +163,7 @@ export function changeAppPlan(appId: string, planName: string): Promise<App> {
 export function getAppFeatureConfig(
   appId: string
 ): Promise<AppFeatureConfigResponse> {
-  return apiRequest(
-    `/api/v1/apps/${encodeURIComponent(appId)}/feature-config`
-  );
+  return apiRequest(`/api/v1/apps/${encodeURIComponent(appId)}/feature-config`);
 }
 
 export function updateAppFeatureConfig(
