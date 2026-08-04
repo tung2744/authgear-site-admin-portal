@@ -117,7 +117,6 @@ const CountryListFieldControl: React.VFC<CountryListFieldControlProps> =
             onResolveSuggestions={onResolveSuggestions}
             onChange={onTagsChange}
             disabled={disabled}
-            pickerSuggestionsProps={{ suggestionsHeaderText: "Countries" }}
           />
         )}
       </div>
