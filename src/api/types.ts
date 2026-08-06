@@ -114,3 +114,36 @@ export interface SiteAdminAuditLogsListResponse {
 export interface SiteAdminAuditLogDetail extends SiteAdminAuditLog {
   data: Record<string, unknown>;
 }
+
+// ─── Feature Config ───────────────────────────────────────────────────────────
+
+/**
+ * The JSON form of an app's `authgear.features.yaml`. The authoritative
+ * schema lives server-side (`config.FeatureConfig` / `FeatureConfigSchema` in
+ * pkg/lib/config) — this is intentionally a loose type since the UI only
+ * reads a curated set of known paths defensively via JSON pointers (see
+ * `src/pages/featureConfig/fieldRegistry.ts`); fields outside that list still
+ * round-trip safely through the YAML editor without needing a type here.
+ */
+export type FeatureConfig = Record<string, unknown>;
+
+export interface ValidationErrorCause {
+  location: string; // RFC 6901 JSON pointer, "" means the document root
+  kind: string;
+  details?: Record<string, unknown>;
+}
+
+export interface AppFeatureConfigResponse {
+  plan_name: string;
+  effective_plan_feature_config: FeatureConfig;
+  app_feature_config_yaml: string;
+  effective_app_feature_config: FeatureConfig;
+}
+
+export interface UpdateAppFeatureConfigRequest {
+  app_feature_config_yaml: string;
+}
+
+export interface PreviewAppFeatureConfigRequest {
+  app_feature_config_yaml: string;
+}

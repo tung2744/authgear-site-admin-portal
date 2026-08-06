@@ -17,9 +17,16 @@ import UsageContent, { MAU_CAP } from "./UsageContent";
 import PlanContent from "./PlanContent";
 import PortalAdminContent from "./PortalAdminContent";
 import AuditLogContent from "./AuditLogContent";
+import FeatureConfigContent from "./FeatureConfigContent";
 import styles from "./ProjectDetailsPage.module.css";
 
-type TabKey = "overview" | "usage" | "plan" | "portalAdmin" | "auditLog";
+type TabKey =
+  | "overview"
+  | "usage"
+  | "plan"
+  | "portalAdmin"
+  | "auditLog"
+  | "featureConfig";
 
 /** URL hash segment for each tab */
 const TAB_KEY_TO_HASH: Record<TabKey, string> = {
@@ -28,6 +35,7 @@ const TAB_KEY_TO_HASH: Record<TabKey, string> = {
   plan: "plan",
   portalAdmin: "portal-admin",
   auditLog: "audit-log",
+  featureConfig: "feature-config",
 };
 
 const HASH_TO_TAB_KEY: Record<string, TabKey> = {
@@ -36,6 +44,7 @@ const HASH_TO_TAB_KEY: Record<string, TabKey> = {
   plan: "plan",
   "portal-admin": "portalAdmin",
   "audit-log": "auditLog",
+  "feature-config": "featureConfig",
 };
 
 function tabKeyFromHash(hash: string): TabKey {
@@ -156,8 +165,14 @@ const ProjectDetailsPage: React.VFC = function ProjectDetailsPage() {
       const key = item?.props.itemKey as TabKey | undefined;
       if (key && projectId) {
         const hash = TAB_KEY_TO_HASH[key];
+        // selectedTab is derived from location.hash by the effect above, not
+        // set here directly -- if a tab holds an unsaved-changes blocker
+        // (e.g. Feature Config), that blocker only gets a chance to
+        // intercept because navigate() hasn't actually committed yet when
+        // this fires. Setting selectedTab eagerly here would switch tabs
+        // (unmounting the blocking component) regardless of whether the
+        // navigation was blocked.
         navigate(`/project/${projectId}#${hash}`, { replace: true });
-        setSelectedTab(key);
       }
     },
     [navigate, projectId]
@@ -302,12 +317,13 @@ const ProjectDetailsPage: React.VFC = function ProjectDetailsPage() {
           <PivotItem headerText="Usage" itemKey="usage" />
           <PivotItem headerText="Plan" itemKey="plan" />
           <PivotItem headerText="Portal Admin" itemKey="portalAdmin" />
+          <PivotItem headerText="Feature Config" itemKey="featureConfig" />
           <PivotItem headerText="Site Admin Log" itemKey="auditLog" />
         </Pivot>
 
         <div
           className={
-            selectedTab === "auditLog"
+            selectedTab === "auditLog" || selectedTab === "featureConfig"
               ? styles.tabContentFullWidth
               : styles.tabContent
           }
@@ -398,6 +414,9 @@ const ProjectDetailsPage: React.VFC = function ProjectDetailsPage() {
           )}
           {selectedTab === "portalAdmin" && (
             <PortalAdminContent appId={appDetail.id} />
+          )}
+          {selectedTab === "featureConfig" && (
+            <FeatureConfigContent appId={appDetail.id} />
           )}
           {selectedTab === "auditLog" && (
             <AuditLogContent appId={appDetail.id} />

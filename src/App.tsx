@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { initializeIcons, Spinner, SpinnerSize } from "@fluentui/react";
 import { AuthgearProvider, useAuthgear } from "./auth/AuthgearContext";
 import ScreenLayout from "./components/ScreenLayout";
@@ -56,31 +56,35 @@ const AuthenticatedApp: React.VFC = function AuthenticatedApp() {
 
   return (
     <ScreenLayout>
-      <Routes>
-        <Route path="/" element={<ProjectsScreen />} />
-        <Route path="/api-test" element={<APITestPage />} />
-        <Route path="/project/:projectId" element={<ProjectDetailsPage />} />
-        <Route
-          path="/project/:projectId/audit-log/:logId"
-          element={<AuditLogDetailPage />}
-        />
-        <Route path="/audit-logs" element={<SiteAdminAuditLogScreen />} />
-        <Route path="/audit-logs/:logId" element={<AuditLogDetailPage />} />
-      </Routes>
+      <Outlet />
     </ScreenLayout>
   );
 };
 
+const router = createBrowserRouter([
+  { path: "/auth-redirect", element: <AuthRedirectPage /> },
+  {
+    path: "/",
+    element: <AuthenticatedApp />,
+    children: [
+      { index: true, element: <ProjectsScreen /> },
+      { path: "api-test", element: <APITestPage /> },
+      { path: "project/:projectId", element: <ProjectDetailsPage /> },
+      {
+        path: "project/:projectId/audit-log/:logId",
+        element: <AuditLogDetailPage />,
+      },
+      { path: "audit-logs", element: <SiteAdminAuditLogScreen /> },
+      { path: "audit-logs/:logId", element: <AuditLogDetailPage /> },
+    ],
+  },
+]);
+
 const App: React.VFC = function App() {
   return (
-    <BrowserRouter>
-      <AuthgearProvider>
-        <Routes>
-          <Route path="/auth-redirect" element={<AuthRedirectPage />} />
-          <Route path="/*" element={<AuthenticatedApp />} />
-        </Routes>
-      </AuthgearProvider>
-    </BrowserRouter>
+    <AuthgearProvider>
+      <RouterProvider router={router} />
+    </AuthgearProvider>
   );
 };
 

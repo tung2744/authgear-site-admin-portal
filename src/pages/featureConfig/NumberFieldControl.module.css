@@ -1,0 +1,7 @@
+.root {
+  @apply flex items-center gap-3;
+}
+
+.input {
+  @apply w-24;
+}
