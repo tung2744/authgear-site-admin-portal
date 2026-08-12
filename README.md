@@ -6,7 +6,7 @@ Admin portal UI for managing all tenants/projects in a given Authgear deployment
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 26.7+ (bundles npm 11.19+) — this repo's `.npmrc` enforces a 7-day minimum package release age to reduce supply-chain risk, which requires npm 11.10+; older Node/npm will fail the `engines` check on install
 
 ### Configuration
 

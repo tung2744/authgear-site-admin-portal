@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:22.20.0 AS builder
+FROM --platform=$BUILDPLATFORM node:26.7.0 AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json /app/
